@@ -1,5 +1,5 @@
 /* ── Config ──────────────────────────────────────────────────────────── */
-const API_BASE = "https://summarizer-ai.onrender.com";
+const API_BASE = "https://nayaksneha-summarizer-ai.hf.space";
 const MAX_FILE_MB   = 5;
 const MAX_CHARS     = 50_000;
 
@@ -37,14 +37,13 @@ async function loadModes() {
     const list = await r.json();
     renderModes(list);
   } catch {
-    // fallback: render built-in modes
     renderModes([
-      { key: "brief",     label: "Brief" },
-      { key: "detailed",  label: "Detailed" },
-      { key: "bullets",   label: "Bullet Points" },
-      { key: "eli5",      label: "Explain Simply" },
-      { key: "tldr",      label: "TL;DR" },
-      { key: "executive", label: "Executive Summary" },
+      { key: "brief",    label: "Brief" },
+      { key: "detailed", label: "Detailed" },
+      { key: "tldr",     label: "TL;DR" },
+      { key: "short",    label: "Short" },
+      { key: "medium",   label: "Medium" },
+      { key: "long",     label: "Long" },
     ]);
   }
 }
@@ -174,7 +173,7 @@ async function summarize() {
     showResult(data);
 
   } catch (err) {
-    showError("Could not reach the server. Make sure the backend is running.");
+    showError("Could not reach the server. Please try again.");
   } finally {
     btn.disabled = false;
     label.textContent = "Generate Summary";
@@ -184,8 +183,8 @@ async function summarize() {
 
 /* ── Result / error helpers ──────────────────────────────────────────── */
 const modeLabels = {
-  brief: "Brief", detailed: "Detailed", bullets: "Bullet Points",
-  eli5: "Plain English", tldr: "TL;DR", executive: "Executive Summary",
+  brief: "Brief", detailed: "Detailed", tldr: "TL;DR",
+  short: "Short", medium: "Medium", long: "Long",
 };
 
 function showResult(data) {
