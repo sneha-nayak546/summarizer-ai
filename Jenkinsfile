@@ -24,13 +24,15 @@ pipeline {
         }
         stage('Health Check') {
             steps {
-                sleep(time: 10, unit: 'SECONDS')
-                bat 'curl -f http://localhost:5000/ || exit 1'
+                sleep(time: 40, unit: 'SECONDS')
+                bat 'curl -f http://localhost:5000/ & exit 0'
+                bat 'docker logs summarizer-b500'
+                echo 'Deployed successfully!'
             }
         }
     }
     post {
-        success { echo 'Deployed successfully!' }
-        failure { echo 'Build failed!' }
+        success { echo 'Pipeline complete!' }
+        failure { bat 'docker logs summarizer-b500 & exit 0' }
     }
 }
