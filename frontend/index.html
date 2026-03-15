@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Summarize AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Background noise texture -->
+  <canvas id="noise" aria-hidden="true"></canvas>
+
+  <div class="shell">
+
+    <!-- ── Header ── -->
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">◈</span>
+        <span class="logo-text">Summarize<em>AI</em></span>
+      </div>
+      <div class="build-badge">Build 500</div>
+    </header>
+
+    <!-- ── Hero ── -->
+    <section class="hero">
+      <h1 class="hero-title">
+        Turn <em>walls of text</em><br/>into clear insight.
+      </h1>
+      <p class="hero-sub">Paste text or upload a document — pick your summary style and go.</p>
+    </section>
+
+    <!-- ── Main card ── -->
+    <main class="card">
+
+      <!-- Tabs: Text / File -->
+      <div class="tab-bar" role="tablist">
+        <button class="tab active" id="tab-text" role="tab" aria-selected="true"  onclick="switchTab('text')">✏ Paste Text</button>
+        <button class="tab"        id="tab-file" role="tab" aria-selected="false" onclick="switchTab('file')">📄 Upload File</button>
+      </div>
+
+      <!-- Text panel -->
+      <div class="panel" id="panel-text">
+        <div class="char-wrapper">
+          <textarea
+            id="input-text"
+            class="text-input"
+            placeholder="Paste your article, report, notes — anything…"
+            oninput="updateCharCount()"
+            maxlength="50000"
+          ></textarea>
+          <div class="char-count">
+            <span id="char-used">0</span> / 50,000 characters
+          </div>
+        </div>
+      </div>
+
+      <!-- File panel -->
+      <div class="panel hidden" id="panel-file">
+        <label class="drop-zone" id="drop-zone" for="file-input">
+          <div class="drop-icon">⬆</div>
+          <div class="drop-text">
+            <strong>Click to choose a file</strong> or drag &amp; drop
+          </div>
+          <div class="drop-hint">.pdf, .docx, .txt · Max 5 MB</div>
+          <input type="file" id="file-input" accept=".pdf,.docx,.txt" hidden onchange="handleFileSelect(event)" />
+        </label>
+        <div class="file-info hidden" id="file-info">
+          <span class="file-icon">📎</span>
+          <span id="file-name"></span>
+          <span id="file-size" class="file-size"></span>
+          <button class="remove-file" onclick="clearFile()" title="Remove">✕</button>
+        </div>
+      </div>
+
+      <!-- Mode selector -->
+      <div class="mode-section">
+        <div class="mode-label">Summary style</div>
+        <div class="mode-grid" id="mode-grid">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <button class="btn-summarize" id="btn-go" onclick="summarize()">
+        <span id="btn-label">Generate Summary</span>
+        <span id="btn-icon">→</span>
+      </button>
+
+      <!-- Result -->
+      <div class="result-area hidden" id="result-area">
+        <div class="result-header">
+          <span class="result-badge" id="result-badge"></span>
+          <span class="result-chars" id="result-chars"></span>
+          <button class="copy-btn" id="copy-btn" onclick="copyResult()" title="Copy to clipboard">⎘ Copy</button>
+        </div>
+        <div class="result-body" id="result-body"></div>
+      </div>
+
+      <!-- Error -->
+      <div class="error-area hidden" id="error-area">
+        <span class="error-icon">⚠</span>
+        <span id="error-msg"></span>
+      </div>
+
+    </main>
+
+    <footer class="footer">
+      <span>Powered by Claude · Build 500</span>
+    </footer>
+
+  </div><!-- /shell -->
+
+  <script src="script.js"></script>
+</body>
+</html>

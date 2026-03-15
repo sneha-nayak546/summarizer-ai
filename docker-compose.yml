@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  summarizer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: summarizer-ai:500
+    container_name: summarizer-b500
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    # No ANTHROPIC_API_KEY needed — fully local model, zero cost
