@@ -1,5 +1,5 @@
 /* ── Config ──────────────────────────────────────────────────────────── */
-const API_BASE      = "http://localhost:5000";
+const API_BASE = "https://summarizer-ai.onrender.com";
 const MAX_FILE_MB   = 5;
 const MAX_CHARS     = 50_000;
 
