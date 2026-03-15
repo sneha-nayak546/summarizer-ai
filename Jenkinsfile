@@ -15,8 +15,8 @@ pipeline {
         }
         stage('Stop Old Container') {
             steps {
-                bat 'docker stop summarizer-b500 || echo no container'
-                bat 'docker rm summarizer-b500 || echo no container'
+                bat 'docker stop summarizer-b500 & exit 0'
+                bat 'docker rm summarizer-b500 & exit 0'
             }
         }
         stage('Run New Container') {
