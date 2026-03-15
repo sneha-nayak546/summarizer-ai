@@ -1,28 +1,10 @@
-# ```
+---
+title: Summarizer AI
+colorFrom: green
+colorTo: blue
+sdk: docker
+pinned: false
+app_port: 5000
+---
 
-# \---
-
-# title: Summarizer AI
-
-# emoji: 📝
-
-# colorFrom: green
-
-# colorTo: blue
-
-# sdk: docker
-
-# pinned: false
-
-# app\_port: 5000
-
-# \---
-
-# 
-
-# \# Summarizer AI - Build 500
-
-# 
-
-# AI-powered text summarizer. Supports PDF, DOCX, TXT upload with 6 summary styles.
-
+# Summarizer AI Build 500
