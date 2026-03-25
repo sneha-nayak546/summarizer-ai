@@ -1,9 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from transformers import pipeline
 import os, io, PyPDF2, docx
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
 
 # ── Limits ──────────────────────────────────────────────────────────────────
@@ -11,19 +11,19 @@ MAX_CHARS      = 50_000
 MAX_FILE_MB    = 5
 MAX_FILE_BYTES = MAX_FILE_MB * 1024 * 1024
 
-# ── Load model ONCE at startup (already baked into Docker image) ────────────
+# ── Load model ───────────────────────────────────────────────────────────────
 MODEL_PATH = os.environ.get("MODEL_PATH", "/app/model")
 print(f"[startup] Loading model from {MODEL_PATH} ...")
 summarizer = pipeline(
     "summarization",
     model=MODEL_PATH,
     tokenizer=MODEL_PATH,
-    device=-1,      # CPU — no GPU needed
+    device=-1,
     framework="pt",
 )
 print("[startup] Model ready ✓")
 
-# ── Summary mode configs ─────────────────────────────────────────────────────
+# ── Summary modes ─────────────────────────────────────────────────────────────
 MODES = {
     "brief":    {"label": "Brief",    "max_length": 80,  "min_length": 30},
     "detailed": {"label": "Detailed", "max_length": 300, "min_length": 120},
@@ -33,8 +33,8 @@ MODES = {
     "long":     {"label": "Long",     "max_length": 400, "min_length": 150},
 }
 
-# ── Helpers ──────────────────────────────────────────────────────────────────
-def extract_text(file_storage) -> str:
+# ── Helpers ───────────────────────────────────────────────────────────────────
+def extract_text(file_storage):
     raw = file_storage.read()
     if len(raw) > MAX_FILE_BYTES:
         raise ValueError(f"File too large. Max allowed: {MAX_FILE_MB} MB.")
@@ -50,8 +50,7 @@ def extract_text(file_storage) -> str:
     else:
         raise ValueError("Unsupported format. Use .pdf, .docx, or .txt")
 
-
-def chunk_text(text: str, max_words: int = 900) -> list:
+def chunk_text(text, max_words=900):
     words = text.split()
     chunks, cur = [], []
     for w in words:
@@ -63,15 +62,11 @@ def chunk_text(text: str, max_words: int = 900) -> list:
         chunks.append(" ".join(cur))
     return chunks
 
-
-def run_summarizer(text: str, mode_key: str) -> str:
+def run_summarizer(text, mode_key):
     if len(text) > MAX_CHARS:
-        raise ValueError(
-            f"Text too long ({len(text):,} chars). Max is {MAX_CHARS:,} (~10 000 words)."
-        )
+        raise ValueError(f"Text too long ({len(text):,} chars). Max is {MAX_CHARS:,}.")
     mode   = MODES.get(mode_key, MODES["brief"])
     chunks = chunk_text(text)
-
     summaries = []
     for chunk in chunks:
         out = summarizer(
@@ -85,29 +80,20 @@ def run_summarizer(text: str, mode_key: str) -> str:
             early_stopping=True,
         )
         summaries.append(out[0]["summary_text"])
-
     if len(summaries) == 1:
         return summaries[0]
-
     merged = " ".join(summaries)
     if len(merged.split()) > mode["max_length"]:
-        final = summarizer(
-            merged,
-            max_length=mode["max_length"],
-            min_length=mode["min_length"],
-            do_sample=False,
-            num_beams=4,
-            no_repeat_ngram_size=3,
-            early_stopping=True,
-        )
+        final = summarizer(merged, max_length=mode["max_length"], min_length=mode["min_length"], do_sample=False)
         return final[0]["summary_text"]
     return merged
 
+# ── Routes ────────────────────────────────────────────────────────────────────
 
-# ── Routes ───────────────────────────────────────────────────────────────────
+# Serve frontend UI at root URL
 @app.route("/")
-def home():
-    return jsonify({"status": "Text Summarizer API", "build": 500, "model": "bart-large-cnn"})
+def index():
+    return send_from_directory(app.static_folder, "index.html")
 
 @app.route("/modes")
 def get_modes():

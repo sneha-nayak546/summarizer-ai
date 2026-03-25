@@ -1,14 +1,15 @@
 /* ── Config ──────────────────────────────────────────────────────────── */
-const API_BASE = "https://nayaksneha-summarizer-ai.hf.space";
-const MAX_FILE_MB   = 5;
-const MAX_CHARS     = 50_000;
+// Auto-detect: works on localhost AND on HuggingFace/any deployment
+const API_BASE = window.location.origin;
+const MAX_FILE_MB = 5;
+const MAX_CHARS   = 50_000;
 
 /* ── State ───────────────────────────────────────────────────────────── */
-let activeTab       = "text";
-let selectedMode    = "brief";
-let selectedFile    = null;
+let activeTab    = "text";
+let selectedMode = "brief";
+let selectedFile = null;
 
-/* ── Noise texture (canvas) ──────────────────────────────────────────── */
+/* ── Noise texture ───────────────────────────────────────────────────── */
 (function initNoise() {
   const canvas = document.getElementById("noise");
   const ctx    = canvas.getContext("2d");
@@ -30,7 +31,7 @@ let selectedFile    = null;
   resize();
 })();
 
-/* ── Load modes from API ─────────────────────────────────────────────── */
+/* ── Load modes ──────────────────────────────────────────────────────── */
 async function loadModes() {
   try {
     const r    = await fetch(`${API_BASE}/modes`);
@@ -127,7 +128,7 @@ function clearFile() {
   });
 })();
 
-/* ── Main summarize ──────────────────────────────────────────────────── */
+/* ── Summarize ───────────────────────────────────────────────────────── */
 async function summarize() {
   hideResult(); hideError();
 
@@ -148,12 +149,11 @@ async function summarize() {
       form.append("file", selectedFile);
       form.append("mode", selectedMode);
       response = await fetch(`${API_BASE}/summarize`, { method: "POST", body: form });
-
     } else {
       const text = document.getElementById("input-text").value.trim();
       if (!text) { showError("Please paste some text before summarizing."); return; }
       if (text.length > MAX_CHARS) {
-        showError(`Text is too long (${text.length.toLocaleString()} chars). Max is ${MAX_CHARS.toLocaleString()}.`);
+        showError(`Text too long (${text.length.toLocaleString()} chars). Max is ${MAX_CHARS.toLocaleString()}.`);
         return;
       }
       response = await fetch(`${API_BASE}/summarize`, {
@@ -164,12 +164,7 @@ async function summarize() {
     }
 
     const data = await response.json();
-
-    if (!response.ok || data.error) {
-      showError(data.error || `Server error (${response.status}).`);
-      return;
-    }
-
+    if (!response.ok || data.error) { showError(data.error || `Server error (${response.status}).`); return; }
     showResult(data);
 
   } catch (err) {
@@ -182,35 +177,26 @@ async function summarize() {
 }
 
 /* ── Result / error helpers ──────────────────────────────────────────── */
-const modeLabels = {
-  brief: "Brief", detailed: "Detailed", tldr: "TL;DR",
-  short: "Short", medium: "Medium", long: "Long",
-};
+const modeLabels = { brief: "Brief", detailed: "Detailed", tldr: "TL;DR", short: "Short", medium: "Medium", long: "Long" };
 
 function showResult(data) {
   const area = document.getElementById("result-area");
-  document.getElementById("result-badge").textContent  = modeLabels[data.mode] || data.mode;
-  document.getElementById("result-chars").textContent  = `from ${(data.input_chars || 0).toLocaleString()} chars`;
-  document.getElementById("result-body").textContent   = data.summary;
+  document.getElementById("result-badge").textContent = modeLabels[data.mode] || data.mode;
+  document.getElementById("result-chars").textContent = `from ${(data.input_chars || 0).toLocaleString()} chars`;
+  document.getElementById("result-body").textContent  = data.summary;
   area.classList.remove("hidden");
   area.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
-function hideResult() {
-  document.getElementById("result-area").classList.add("hidden");
-}
+function hideResult() { document.getElementById("result-area").classList.add("hidden"); }
 
 function showError(msg) {
-  const el = document.getElementById("error-area");
   document.getElementById("error-msg").textContent = msg;
-  el.classList.remove("hidden");
+  document.getElementById("error-area").classList.remove("hidden");
 }
 
-function hideError() {
-  document.getElementById("error-area").classList.add("hidden");
-}
+function hideError() { document.getElementById("error-area").classList.add("hidden"); }
 
-/* ── Copy to clipboard ───────────────────────────────────────────────── */
 function copyResult() {
   const text = document.getElementById("result-body").textContent;
   navigator.clipboard.writeText(text).then(() => {
